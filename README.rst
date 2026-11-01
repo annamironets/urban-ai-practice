@@ -29,7 +29,7 @@ Use the library by importing classes from ``my_package``:
 
 ::
 
-   from my_package.my_module_1 import MyClass
+   from my_package import MyClass
 
 For more detailed use case see our `examples <#examples>`__.
 

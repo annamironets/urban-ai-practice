@@ -34,8 +34,12 @@ instance/
 # Environments
 .env
 .venv/
+.venv-*/
 venv/
 ENV/
+
+# Local caches
+cache/
 
 # MyPy
 .mypy_cache/

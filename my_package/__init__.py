@@ -6,10 +6,17 @@ for Institute of Design and Urban Studies (IDU). It includes basic metadata
 such as versioning, author information, and license details.
 """
 
-import importlib
+from importlib.metadata import PackageNotFoundError, version
 
-__version__ = importlib.metadata.version("my_package") # TODO поменять название в соответствии с pyproject.toml
+from .my_module import MyClass, my_function
+
+try:
+    __version__ = version("my_package")
+except PackageNotFoundError:
+    __version__ = "0.0.0"
+
 __author__ = "Vasilii Starikov"
 __email__ = "vasilstar97@gmail.com"
 __credits__ = []
 __license__ = "BSD-3"
+__all__ = ["MyClass", "my_function", "__version__", "__author__", "__email__", "__credits__", "__license__"]
