@@ -21,6 +21,8 @@ jobs:
         python-version: ["3.10"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -35,6 +37,11 @@ jobs:
       - name: Sphinx build
         run: |
           sphinx-build docs/source docs/build
+      - name: Add dashboard and Sovietsky data
+        run: |
+          mkdir -p docs/build/data
+          cp dashboard.html docs/build/dashboard.html
+          cp -a data/sovetsky docs/build/data/
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
