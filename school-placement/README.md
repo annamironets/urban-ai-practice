@@ -47,13 +47,46 @@ python app.py
 
 ## Публикация
 
-GitHub Pages обслуживает только статические файлы и не запускает `app.py`. Корневой `render.yaml` в репозитории содержит настройки для развёртывания Python API на Render. Создайте Blueprint из этого репозитория и примените конфигурацию:
+GitHub Pages обслуживает только статические файлы и не запускает `app.py`. Для бесплатного Python API можно использовать Beginner account на [PythonAnywhere](https://www.pythonanywhere.com/registration/register/beginner/). В бесплатном тарифе есть одно веб-приложение на домене `USERNAME.pythonanywhere.com`; у тарифа ограничен исходящий доступ в интернет. Render Blueprint в корне репозитория остаётся альтернативой, если вы выберете Render.
 
-- Root Directory: `school-placement`
-- Build Command: `pip install -r requirements.txt`
-- Start Command: `python app.py --host 0.0.0.0 --port $PORT`
-- Переменная `SCHOOL_PLACEMENT_ALLOWED_ORIGINS`: `https://annamironets.github.io`
+### Настройка API на PythonAnywhere
 
-Для публикации интерфейса задайте в настройках GitHub репозитория Actions variable `SCHOOL_PLACEMENT_API_URL` равной HTTPS origin созданного API, например `https://your-service.onrender.com` (без завершающего `/`). Существующий workflow документации добавит интерфейс по пути `/school-placement/` и запишет этот API-адрес в конфигурацию Pages. После успешного запуска workflow приложение будет доступно по адресу <https://annamironets.github.io/urban-ai-practice/school-placement/>.
+1. Создайте бесплатный Beginner account на PythonAnywhere и откройте вкладку **Consoles → Bash**.
+2. Склонируйте репозиторий и установите зависимости в виртуальное окружение:
 
-Render и другие сторонние хостинги могут менять условия бесплатного тарифа; проверьте доступность выбранного тарифа при создании сервиса. Не добавляйте адрес API с HTTP: браузерная страница GitHub Pages работает по HTTPS и заблокирует небезопасные запросы.
+   ```bash
+   git clone --depth 1 https://github.com/annamironets/urban-ai-practice.git
+   cd ~/urban-ai-practice/school-placement
+   mkvirtualenv school-placement --python=python3.12
+   pip install -r requirements.txt
+   ```
+
+   Если Python 3.12 недоступен в вашем аккаунте, выберите доступный Python 3.10–3.12, поддерживаемый BlocksNet.
+
+3. Во вкладке **Web** создайте приложение **Manual configuration** на той же версии Python. В поле **Virtualenv** укажите `/home/USERNAME/.virtualenvs/school-placement`, заменив `USERNAME` на имя аккаунта PythonAnywhere.
+4. Откройте ссылку на WSGI configuration file со страницы Web, замените его содержимое на шаблон ниже и укажите своё имя аккаунта:
+
+   ```python
+   import os
+   import sys
+
+   project_home = "/home/USERNAME/urban-ai-practice/school-placement"
+   if project_home not in sys.path:
+       sys.path.insert(0, project_home)
+
+   os.environ["SCHOOL_PLACEMENT_ALLOWED_ORIGINS"] = "https://annamironets.github.io"
+   from wsgi import application
+   ```
+
+5. Нажмите **Reload** на странице Web. Проверьте API по адресу `https://USERNAME.pythonanywhere.com/api/health`: ожидается `{"status":"ok"}`. При первом запуске приложение загружает и проверяет данные; если сервис не стартовал, смотрите **Error log** на вкладке Web.
+
+Бесплатный тариф PythonAnywhere имеет ограничения и исходящий интернет доступен не ко всем адресам. Если установка пакетов или импорт BlocksNet блокируется тарифом, этот хостинг может не подойти без платного тарифа или отдельного разрешения PythonAnywhere.
+
+### Подключение GitHub Pages
+
+Для публикации интерфейса в GitHub откройте **Settings → Secrets and variables → Actions → Variables → New repository variable** и задайте:
+
+- Name: `SCHOOL_PLACEMENT_API_URL`
+- Value: `https://USERNAME.pythonanywhere.com` (замените `USERNAME` на имя аккаунта; не добавляйте `/api` и завершающий `/`).
+
+В **Actions** запустите workflow **Documentation** (или дождитесь его запуска после обновления `main`). Интерфейс появится по адресу <https://annamironets.github.io/urban-ai-practice/school-placement/>.

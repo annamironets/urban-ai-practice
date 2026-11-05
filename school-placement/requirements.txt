@@ -1,3 +1,4 @@
 blocksnet==1.0.0a9
+Flask==3.1.1
 geopandas==1.2.0
 pandas==2.3.3
