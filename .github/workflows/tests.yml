@@ -23,4 +23,24 @@ jobs:
           make install-test
       - name: Test with pytest
         run: |
-          make test
+          make tests
+
+  school-placement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install application dependencies
+        working-directory: school-placement
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Test school placement application
+        working-directory: school-placement
+        run: |
+          python -m unittest discover -s tests -v

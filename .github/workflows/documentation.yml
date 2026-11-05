@@ -42,6 +42,32 @@ jobs:
           mkdir -p docs/build/data
           cp dashboard.html docs/build/dashboard.html
           cp -a data/sovetsky docs/build/data/
+      - name: Add school placement app
+        env:
+          SCHOOL_PLACEMENT_API_URL: ${{ vars.SCHOOL_PLACEMENT_API_URL }}
+        run: |
+          mkdir -p docs/build/school-placement
+          cp -a school-placement/web/. docs/build/school-placement/
+          cp -a school-placement/data docs/build/school-placement/
+          python - <<'PY'
+          import json
+          import os
+          from urllib.parse import urlparse
+
+          api_url = os.environ.get("SCHOOL_PLACEMENT_API_URL", "").rstrip("/")
+          if api_url:
+              parsed = urlparse(api_url)
+              if parsed.scheme != "https" or not parsed.netloc or parsed.path or parsed.query or parsed.fragment:
+                  raise SystemExit("SCHOOL_PLACEMENT_API_URL must be an HTTPS origin without a path.")
+          index_path = "docs/build/school-placement/index.html"
+          with open(index_path, encoding="utf-8") as index_file:
+              index = index_file.read()
+          marker = 'window.SCHOOL_API_BASE = "";'
+          if marker not in index:
+              raise SystemExit("School placement API configuration marker is missing from index.html.")
+          with open(index_path, "w", encoding="utf-8") as index_file:
+              index_file.write(index.replace(marker, f"window.SCHOOL_API_BASE = {json.dumps(api_url)};", 1))
+          PY
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}

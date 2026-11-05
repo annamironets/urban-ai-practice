@@ -12,6 +12,19 @@ Python package boilerplate (IDU)
 
 .. readme-start 
 
+School placement demo
+---------------------
+
+An interactive school-placement application for Sovetsky urban settlement is
+available at
+`GitHub Pages <https://annamironets.github.io/urban-ai-practice/school-placement/>`__.
+It reuses the saved settlement data in ``data/sovetsky`` and the
+``BlocksNet 1.0.0a9`` model. The static interface is hosted on GitHub Pages;
+the calculation API must run separately as a Python web service.
+
+Deployment instructions for the API, GitHub Pages configuration, and local
+development are in ``school-placement/README.md``.
+
 Installation
 ------------
 
