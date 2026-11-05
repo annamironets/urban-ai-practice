@@ -5,6 +5,7 @@ from threading import Thread
 from http.server import ThreadingHTTPServer
 
 from app import AutoSearch, SchoolModel, create_handler, validate_schools
+from wsgi import create_app
 
 
 class SchoolModelTests(unittest.TestCase):
@@ -79,6 +80,44 @@ class SchoolModelTests(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join(timeout=5)
+
+    def test_wsgi_api_serves_data_and_calculations(self):
+        client = create_app(self.model).test_client()
+
+        data = client.get("/api/data")
+        self.assertEqual(data.status_code, 200)
+        self.assertEqual(data.json["settings"]["blocks"], 814)
+        self.assertEqual(data.headers["Cache-Control"], "no-store")
+
+        result = client.post("/api/calculate", json={"schools": []})
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.json["summary"]["deficit"], 521)
+
+        invalid = client.post("/api/calculate", json={"schools": [{"block_id": 293, "capacity": 0}]})
+        self.assertEqual(invalid.status_code, 400)
+        self.assertIn("положительным целым", invalid.json["error"])
+
+    def test_wsgi_cors_allows_pages_and_rejects_other_origins(self):
+        client = create_app(self.model).test_client()
+
+        allowed = client.options(
+            "/api/calculate",
+            headers={
+                "Origin": "https://annamironets.github.io",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type",
+            },
+        )
+        self.assertEqual(allowed.status_code, 204)
+        self.assertEqual(allowed.headers["Access-Control-Allow-Origin"], "https://annamironets.github.io")
+        self.assertIn("POST", allowed.headers["Access-Control-Allow-Methods"])
+
+        rejected = client.options(
+            "/api/calculate",
+            headers={"Origin": "https://example.invalid", "Access-Control-Request-Method": "POST"},
+        )
+        self.assertEqual(rejected.status_code, 403)
+        self.assertNotIn("Access-Control-Allow-Origin", rejected.headers)
 
     def test_auto_search_checks_each_block_independently_and_keeps_ties(self):
         class FakeModel:
